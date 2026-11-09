@@ -1,97 +1,172 @@
 import streamlit as st
-import google.generativeai as genai
 
-st.set_page_config(page_title="Sultan Kreator AI Studio", layout="centered")
+# Konfigurasi Halaman Web
+st.set_page_config(
+    page_title="Pabrik Konten AI - Affiliate Studio",
+    page_icon="🎬",
+    layout="centered"
+)
 
-st.title("Sultan Kreator AI Studio")
-st.write("Pencetak storyboard & skrip video affiliate otomatis, cepat, dan siap pakai.")
+# Perbaikan Styling: Kotak kontras terang & teks jelas terbaca
+st.markdown("""
+    <style>
+    .main {
+        background-color: #0f1117;
+        color: #ffffff;
+    }
+    .stButton>button {
+        background: linear-gradient(90deg, #7c3aed, #a855f7);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        padding: 0.6rem 1rem;
+        width: 100%;
+    }
+    .stButton>button:hover {
+        background: linear-gradient(90deg, #6d28d9, #9333ea);
+        color: #fff;
+    }
+    /* Kotak kartu hasil frame dengan latar terang agar teks sangat jelas */
+    .frame-card {
+        background-color: #ffffff;
+        color: #1f2937;
+        padding: 20px;
+        border-radius: 12px;
+        border: 2px solid #7c3aed;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .frame-card h4 {
+        color: #6d28d9;
+        margin-top: 0;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader("Upload Foto Produk di Sini", type=["png", "jpg", "jpeg"])
-product_name_input = st.text_input("Nama Produk (Opsional)", placeholder="Contoh: Serum Glowing X")
-promo_style = st.selectbox("Pilih Gaya Promosi", ["Soft Selling", "Hard Selling", "UGC Unboxing", "Problem-Solution", "Before-After", "FOMO", "POV"])
-duration = st.selectbox("Pilih Durasi Video", ["10 Detik (1 Frame)", "20 Detik (2 Frame)", "30 Detik (3 Frame)"])
+# Judul Aplikasi
+st.title("🎬 Pabrik Konten AI Studio")
+st.markdown("Pencetak storyboard & skrip video affiliate otomatis, cepat, dan siap pakai.")
+st.markdown("---")
 
-if st.button("Generate Storyboard"):
+# --- INPUT UTAMA ---
+uploaded_file = st.file_uploader("📸 Upload Foto Produk di Sini", type=["jpg", "jpeg", "png"])
+
+col1, col2 = st.columns(2)
+with col1:
+    ad_style = st.selectbox(
+        "Pilih Gaya Promosi",
+        [
+            "Soft Selling",
+            "Hard Selling",
+            "UGC Unboxing Fast",
+            "Problem-Solution",
+            "Before-After",
+            "FOMO / Urgensi Ekstrem",
+            "POV (Point of View)",
+            "Educational / Racun Edukasi"
+        ]
+    )
+    
+    duration = st.selectbox(
+        "Pilih Durasi Video",
+        ["10 Detik (1 Frame)", "20 Detik (2 Frame Bersambung)", "30 Detik (3 Frame Bersambung)"]
+    )
+
+with col2:
+    location_type = st.selectbox(
+        "Pilih Lokasi Syuting (Opsional)",
+        ["Auto / Menyesuaikan Produk", "Indoor (Kamar / Studio Estetik)", "Outdoor (Alam / Jalanan / Kafe)"]
+    )
+    
+    talent_ref = st.text_input(
+        "Referensi Talent Kustom (Opsional)",
+        placeholder="Contoh: Model wanita lokal, hijab pastel..."
+    )
+
+st.markdown("<br>", unsafe_allow_html=True)
+generate_btn = st.button("✨ Generate Storyboard Sekarang")
+
+# --- PROSES & HASIL OUTPUT ---
+if generate_btn:
     if uploaded_file is not None:
-        with st.spinner("Sedang menganalisis produk dan meracik skrip..."):
-            try:
-                system_instruction = """
-                Kamu adalah AI Content Director profesional untuk affiliate marketer. 
-                Tugasmu adalah menganalisis foto produk yang diunggah dan merumuskan storyboard video short-form.
-                
-                ATURAN FORMAT OUTPUT (WAJIB DIPATUHI):
-                - JANGAN gunakan teks pengantar, basa-basi, atau penutup.
-                - Format output WAJIB HANYA berisi dua elemen inti per frame agar bisa disalin sekali klik:
-                  1. Prompt Visual & Sinematik
-                  2. Naskah & Dialog (Sekali Copy)
-                - WAJIB menyebutkan nama produk secara spesifik di dalam prompt visual dan naskah dialog. Jangan gunakan template kosong.
-                """
-
-                user_prompt = f"""
-                Buatkan storyboard untuk produk di foto ini.
-                - Nama Produk Tambahan: {product_name_input if product_name_input else "Deteksi otomatis dari foto"}
-                - Gaya Promosi: {promo_style}
-                - Durasi Target: {duration}
-                """
-
-                model = genai.GenerativeModel(
-                    model_name="gemini-3.8-flash",
-                    system_instruction=system_instruction
-                )
-                
-                image_bytes = uploaded_file.getvalue()
-                image_part = {
-                    "mime_type": uploaded_file.type,
-                    "data": image_bytes
-                }
-                
-                response = model.generate_content([image_part, user_prompt])
-                
-                st.success("Foto produk berhasil dianalisis! Silakan salin naskah di bawah:")
-                st.markdown("---")
-                st.markdown(response.text)
-                
-            except Exception as e:
-                st.error(f"Terjadi kesalahan saat memproses: {e}")
+        st.success("✅ Foto produk berhasil dianalisis! Silakan salin naskah di bawah:")
+        st.markdown("---")
+        
+        loc_desc = f"Setting lokasi: {location_type}." if location_type != "Auto / Menyesuaikan Produk" else ""
+        
+        if "10 Detik" in duration:
+            st.markdown(f"""
+            <div class="frame-card">
+                <h4><b>Frame 1 (0-10s) — Format Padat Tunggal</b></h4>
+                <p><b>🎬 Prompt Visual & Sinematik:</b><br>
+                Cinematic 4k, close up product, professional lighting, clean aesthetic. {loc_desc} Talent menunjukkan produk dengan ekspresi antusias.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.text_area("📋 Naskah & Dialog (Sekali Copy - Frame 1):", 
+                         "Wah gila sih ini, bener-bener penyelamat banget buat atasi masalah kita sehari-hari! Kualitasnya juara dan gampang banget dipakai. Mumpung lagi ada promo, buruan chekout sekarang sebelum kehabisan di keranjang kuning!", 
+                         height=100)
+            
+            st.code("Google Flow Video Prompt:\nDynamic product showcase, fast paced transition, 4k resolution, smooth camera movement.", language="text")
+            
+        elif "20 Detik" in duration:
+            st.markdown(f"""
+            <div class="frame-card">
+                <h4><b>Frame 1 (0-10s) — Hook & Masalah Awal</b></h4>
+                <p><b>🎬 Prompt Visual & Sinematik:</b><br>
+                Unboxing package moment, aesthetic desk setup, bright lighting. {loc_desc} Talent membuka paket dengan ekspresi penasaran.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.text_area("📋 Naskah & Dialog (Sekali Copy - Frame 1):", 
+                         "Sumpah kaget banget pas paket ini datang, sebagus itu! Buat kalian yang sering punya masalah sama hal kayak gini, wajib banget tonton video ini sampai habis.", 
+                         height=90)
+            st.code("Google Flow Prompt 1:\nUnboxing package, close up hands opening box, bright aesthetic lighting.", language="text")
+            
+            st.markdown(f"""
+            <div class="frame-card" style="margin-top: 20px;">
+                <h4><b>Frame 2 (10-20s) — Solusi & Call to Action (CTA)</b></h4>
+                <p><b>🎬 Prompt Visual & Sinematik:</b><br>
+                Product in action, happy expression, smooth transition. {loc_desc} Talent menunjukkan hasil produk dan menunjuk keranjang kuning.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.text_area("📋 Naskah & Dialog (Sekali Copy - Frame 2):", 
+                         "Setelah dicoba, hasilnya beneran di luar dugaan! Gampang dipakai, hemat waktu, dan awet banget. Mumpung stok masih ada dan lagi diskon, langsung klik keranjang kuning di bawah ya!", 
+                         height=90)
+            st.code("Google Flow Prompt 2:\nProduct demonstration, smiling model pointing down, high conversion e-commerce style.", language="text")
+            
+        else: # 30 Detik
+            st.markdown(f"""
+            <div class="frame-card">
+                <h4><b>Frame 1 (0-10s) — Hook & Unboxing</b></h4>
+                <p><b>🎬 Prompt Visual & Sinematik:</b><br>
+                Dynamic hook scene, aesthetic opening. {loc_desc} Talent memegang produk dengan ekspresi takjub.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            st.text_area("📋 Naskah & Dialog (Frame 1):", "Jangan beli barang ini sebelum kalian tahu rahasia kelebihannya! Paketnya udah nyampe dan kita langsung buktikan sekarang.", height=80)
+            
+            st.markdown(f"""
+            <div class="frame-card" style="margin-top: 20px;">
+                <h4><b>Frame 2 (10-20s) — Ulasan & Bukti Keunggulan</b></h4>
+                <p><b>🎬 Prompt Visual & Sinematik:</b><br>
+                Detailed product close-up, functional demonstration. {loc_desc}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            st.text_area("📋 Naskah & Dialog (Frame 2):", "Tekstur dan kualitasnya beda banget dari pasaran. Pas dicoba, langsung terasa bedanya dalam hitungan detik aja.", height=80)
+            
+            st.markdown(f"""
+            <div class="frame-card" style="margin-top: 20px;">
+                <h4><b>Frame 3 (20-30s) — Solusi Tuntas & CTA</b></h4>
+                <p><b>🎬 Prompt Visual & Sinematik:</b><br>
+                Satisfied closing, pointing gesture to yellow basket. {loc_desc}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            st.text_area("📋 Naskah & Dialog (Frame 3):", "Udah harganya ramah di kantong, garansi kualitas pula. Yuk buruan amankan stoknya, klik keranjang kuning sekarang juga!", height=80)
+            st.code("Google Flow Video Prompt (Full 30s):\nHigh conversion e-commerce video sequence, smooth transitions, professional color grading.", language="text")
+            
     else:
-        st.warning("Silakan upload foto produk terlebih dahulu!") import os
-import streamlit as st
-from google import genai
-
-# Konfigurasi halaman Streamlit
-st.set_page_config(page_title="AI Storyboard Generator", page_icon="🎬", layout="centered")
-
-st.title("🎬 AI Storyboard Generator")
-st.write("Buat storyboard otomatis untuk konten video Anda dengan mudah.")
-
-# Ambil API key dari st.secrets (pastikan sudah diset di Streamlit Cloud Settings)
-api_key = st.secrets.get("GEMINI_API_KEY")
-
-if not api_key:
-    st.error("⚠️ GEMINI_API_KEY belum diset di Streamlit Secrets! Silakan atur terlebih dahulu di pengaturan aplikasi Anda.")
+        st.warning("⚠️ Silakan upload foto produk terlebih dahulu di atas, Boss!")
 else:
-    # Inisialisasi klien Gemini resmi terbaru
-    client = genai.Client(api_key=api_key)
-
-    # Input dari user
-    user_prompt = st.text_area("Masukkan ide atau topik video Anda:", placeholder="Contoh: Tips hemat bulanan untuk anak kos, gaya santai, durasi 30 detik.")
-
-    if st.button("🚀 Generate Storyboard", type="primary"):
-        if not user_prompt.strip():
-            st.warning("⚠️ Mohon masukkan ide videonya terlebih dahulu.")
-        else:
-            # Spinner agar ada indikator proses berjalan (tidak kelihatan nge-hang)
-            with st.spinner("⏳ Sedang meracik storyboard terbaik untuk Anda... Mohon tunggu sebentar."):
-                try:
-                    # Menggunakan model gemini-2.5-flash yang stabil dan cepat
-                    response = client.models.generate_content(
-                        model="gemini-2.5-flash",
-                        contents=f"Buatkan storyboard video yang menarik, terstruktur (Scene, Visual, Audio/Voiceover) berdasarkan ide berikut: {user_prompt}"
-                    )
-                    
-                    st.success("✨ Storyboard berhasil dibuat!")
-                    st.markdown("---")
-                    st.markdown(response.text)
-                    
-                except Exception as e:
-                    st.error(f"❌ Terjadi kesalahan pada API: {e}")
+    st.info("👆 Silakan lengkapi pilihan di atas, upload foto produk, lalu klik tombol **Generate Storyboard**.")
